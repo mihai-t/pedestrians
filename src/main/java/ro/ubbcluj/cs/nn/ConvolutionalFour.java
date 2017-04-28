@@ -33,7 +33,6 @@ public class ConvolutionalFour implements Network {
                 .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
                 .useDropConnect(true)
                 .leakyreluAlpha(0.02)
-              //  .minimize(false)
                 .list()
                 .layer(layer++, new ConvolutionLayer.Builder(5, 5)
                         .nIn(1)

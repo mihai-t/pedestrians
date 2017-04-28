@@ -29,8 +29,8 @@ public class Improve {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-    private static final int BATCH_SIZE = 100;
     private static final int EPOCHS = 100;
+    private static final int BATCH_SIZE = 50;
 
     private static final Network network = new ConvolutionalFive();
 
@@ -46,18 +46,20 @@ public class Improve {
         log.info("Initialised GPU Wrapper");
 
         final DataSetReader dataSetReader = new DataSetReader();
+        Instant start = Instant.now();
         log.info("Loading training set");
-        final DataSetIterator dataSetIterator = dataSetReader.loadTrainingSet(BATCH_SIZE);
-        log.info("Training set loaded successfully");
+        DataSetIterator dataSetIterator = dataSetReader.loadTrainingSet(BATCH_SIZE);
+        log.info("Training set loaded successfully, time {} min", Duration.between(start, Instant.now()).toMinutes());
 
+        start = Instant.now();
         log.info("Loading testing set");
         final DataSetIterator dataSetIteratorValidation = dataSetReader.loadTestingSet();
-        log.info("Testing set loaded successfully");
+        log.info("Testing set loaded successfully, time {} sec", Duration.between(start, Instant.now()).getSeconds());
         final NumberFormat formatter = new DecimalFormat("#0.0000");
 
         for (int i = 1; i <= EPOCHS; ++i) {
             log.info("Epoch {}", i);
-            Instant start = Instant.now();
+            start = Instant.now();
             gpuWrapper.fit(dataSetIterator);
             log.info("*** Completed epoch {}, time: {} min***", i, Duration.between(start, Instant.now()).toMinutes());
             saveModel(multiLayerNetwork, network.getName() + i);
@@ -101,6 +103,10 @@ public class Improve {
             }
 
             log.info("*** Evaluation for epoch {} took {} min***", i, Duration.between(start, Instant.now()).toMinutes());
+
+            log.info("Loading training set");
+            dataSetIterator = dataSetReader.loadTrainingSet(BATCH_SIZE);
+            log.info("Training set loaded successfully");
         }
 
         log.info("*** Completed {} epochs, batch size: {}, time: {} hours***", EPOCHS, BATCH_SIZE, Duration.between(startApplication, Instant.now()).toHours());

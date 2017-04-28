@@ -17,11 +17,17 @@ import java.io.*;
 public class Model {
     private static final Log log = LogFactory.getLog(Model.class);
     private static final NativeImageLoader NATIVE_IMAGE_LOADER = new NativeImageLoader();
-
-    private final MultiLayerNetwork multiLayerNetwork;
     private static final String NAME = "models/fourth architecture/fourth convolutional network50.zip";
     private static final String NORMALIZER_NAME = "models/normalizer/norm";
+    private final MultiLayerNetwork multiLayerNetwork;
     private DataNormalization dataNormalization;
+
+    public Model() throws IOException {
+        multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork(NAME);
+        log.info("Loaded model");
+        loadNormaliser();
+        log.info("Loaded normaliser");
+    }
 
     private void loadNormaliser() throws IOException {
         final File file = new File(NORMALIZER_NAME);
@@ -40,13 +46,6 @@ public class Model {
                 out.writeObject(dataNormalization);
             }
         }
-    }
-
-    public Model() throws IOException {
-        multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork(NAME);
-        log.info("Loaded model");
-        loadNormaliser();
-        log.info("Loaded normaliser");
     }
 
     public double isPedestrian(final byte[] crop) throws IOException {

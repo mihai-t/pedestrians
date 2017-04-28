@@ -74,7 +74,8 @@ public class ConvolutionalTwo implements Network {
                         .build())
                 .backprop(true)
                 .pretrain(false)
-                .setInputType(InputType.convolutional(96, 48, 1));;
+                .setInputType(InputType.convolutional(96, 48, 1));
+        ;
         final MultiLayerConfiguration build = builder.build();
         final MultiLayerNetwork net = new MultiLayerNetwork(build);
         net.init();

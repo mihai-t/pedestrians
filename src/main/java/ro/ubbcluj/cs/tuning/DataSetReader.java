@@ -1,81 +1,76 @@
 package ro.ubbcluj.cs.tuning;
 
-import org.datavec.image.loader.BaseImageLoader;
+import org.datavec.api.io.filters.BalancedPathFilter;
+import org.datavec.api.io.labels.ParentPathLabelGenerator;
+import org.datavec.api.records.reader.RecordReader;
+import org.datavec.api.split.FileSplit;
+import org.datavec.api.split.InputSplit;
 import org.datavec.image.loader.NativeImageLoader;
-import org.deeplearning4j.berkeley.Pair;
-import org.deeplearning4j.datasets.iterator.INDArrayDataSetIterator;
-import org.nd4j.linalg.api.ndarray.INDArray;
+import org.datavec.image.recordreader.ImageRecordReader;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
-import org.nd4j.linalg.factory.Nd4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import ro.ubbcluj.cs.nn.Network;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 /**
  * @author Mihai Teletin
  */
 public class DataSetReader {
-    private static final Logger log = LoggerFactory.getLogger(DataSetReader.class);
 
-    private static final File TRAINING_PATH = new File(System.getProperty("user.dir"), "../dataset/tuning");
-    private static final BaseImageLoader loader = new NativeImageLoader(96, 48, 1);
-    private DataNormalization normalization;
+    private static final String[] ALLOWED_EXTENSIONS = NativeImageLoader.ALLOWED_FORMATS;
 
-    public DataSetIterator loadTestingSet() throws IOException {
-        final List<Pair<INDArray, INDArray>> set = loadSamples("Testing/Pedestrian", -1, Nd4j.create(new double[]{0, 1}), normalization);
-        log.info("Loaded {} positives", set.size());
-        set.addAll(loadSamples("Testing/NonPedestrian", -1, Nd4j.create(new double[]{1, 0}), normalization));
-        log.info("Loaded {} samples", set.size());
-        return new INDArrayDataSetIterator(set, 1);
-    }
-
-    public DataSetIterator loadTrainingSet(int batchSize) throws IOException {
-        final List<Pair<INDArray, INDArray>> set = loadSamples("Pedestrian", -1, Nd4j.create(new double[]{0, 1}), null);
-        log.info("Loaded {} positives", set.size());
-        set.addAll(loadSamples("NonPedestrian", set.size(), Nd4j.create(new double[]{1, 0}), null));
-        log.info("Loaded {} samples", set.size());
-        Collections.shuffle(set);
-        final INDArrayDataSetIterator indArrayDataSetIterator = new INDArrayDataSetIterator(set, batchSize);
-        normalization = normalize(indArrayDataSetIterator);
-        return indArrayDataSetIterator;
-    }
+    private static final File TRAINING_PATH = new File(System.getProperty("user.dir"), "../dataset/tuning/Training");
+    private static final File VALIDATION_PATH = new File(System.getProperty("user.dir"), "../dataset/tuning/Testing");
+    private static final int HEIGHT = 96;
+    private static final int WIDTH = 48;
+    private static final int CHANNELS = 1;
+    private static final int CLASSES = 2;
+    private static DataNormalization dataNormalization;
 
     private static DataNormalization normalize(final DataSetIterator iterator) {
-        final DataNormalization scaler = new ImagePreProcessingScaler(-1, 1);
+        final DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
         scaler.fit(iterator);
         iterator.setPreProcessor(scaler);
         return scaler;
     }
 
-    private List<Pair<INDArray, INDArray>> loadSamples(String path, int limit, INDArray label, DataNormalization normalization) throws IOException {
-        String target = TRAINING_PATH + "/" + path;
-        final List<Pair<INDArray, INDArray>> list = new ArrayList<>();
-        final Random random = new Random(Network.SEED);
-        final List<File> files = Files.walk(Paths.get(target))
-                .parallel()
-                .filter(s -> random.nextDouble() > 0.2)//make it random
-                .limit(limit == -1 ? Long.MAX_VALUE : limit)
-                .map(s -> new File(s.toUri()))
-                .collect(Collectors.toList());
-        for (final File file : files) {
-            final INDArray array = loader.asMatrix(file);
-            if (normalization != null) {
-                normalization.transform(array);
-            }
-            list.add(new Pair<>(array, label));
+    private static ImageRecordReader getImageRecordReader(final File path, boolean balance) throws IOException {
+        final FileSplit filesInDir = new FileSplit(path, ALLOWED_EXTENSIONS, new Random());
+        final ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
+        final ImageRecordReader recordReader = new ImageRecordReader(HEIGHT, WIDTH, CHANNELS, labelMaker);
+        if (balance) {
+            final BalancedPathFilter pathFilter = new BalancedPathFilter(new Random(), ALLOWED_EXTENSIONS, labelMaker);
+
+            final InputSplit sample = filesInDir.sample(pathFilter, 1)[0];
+            recordReader.initialize(sample);
+        } else {
+            recordReader.initialize(filesInDir);
         }
-        return list;
+
+        return recordReader;
+    }
+
+    public static DataNormalization getDataNormalization() {
+        return dataNormalization;
+    }
+
+    public DataSetIterator loadTrainingSet(final int batchSize) throws IOException {
+        final RecordReader recordReader = getImageRecordReader(TRAINING_PATH, true);
+        final RecordReaderDataSetIterator iterator = new RecordReaderDataSetIterator(recordReader, batchSize, 1, CLASSES);
+        dataNormalization = normalize(iterator);
+
+        return iterator;
+    }
+
+    public DataSetIterator loadTestingSet() throws IOException {
+        final RecordReader recordReader = getImageRecordReader(VALIDATION_PATH, false);
+        final RecordReaderDataSetIterator iterator = new RecordReaderDataSetIterator(recordReader, 1, 1, CLASSES);
+        normalize(iterator);
+        return iterator;
     }
 }
+

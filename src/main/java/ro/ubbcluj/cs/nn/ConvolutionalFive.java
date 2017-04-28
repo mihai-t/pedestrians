@@ -10,7 +10,7 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 /**
- * [CONV(3x3, 64) -> NORM -> SUB(2x2, MAX)] 2 -> [CONV(3x3, 64)] 3 -> SUB(2x2, MAX) -> FC(384)
+ * [CONV(3x3, 64) -> NORM -> SUB(2x2, MAX)] 2 -> [CONV(3x3, 64)] 2 -> SUB(2x2, MAX) -> FC(384)
  *
  * @author Mihai Teletin
  */
@@ -22,12 +22,13 @@ public class ConvolutionalFive implements Network {
         final MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
                 .seed(SEED)
                 .iterations(1)
-                .regularization(true).l1(0.0001).l2(0.0001)//elastic net regularization
+                .regularization(true).l1(0.0001).l2(0.0001)
                 .learningRate(LEARNING_RATE)
                 .learningRateDecayPolicy(LearningRatePolicy.Score).lrPolicyDecayRate(0.001)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-                .updater(Updater.NESTEROVS)
+                .updater(Updater.ADAM)
                 .momentum(0.9)
+                .leakyreluAlpha(0.02)
                 .gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
                 .useDropConnect(true)
                 .list()
@@ -36,7 +37,7 @@ public class ConvolutionalFive implements Network {
                         .padding(1, 1)
                         .nOut(64)
                         .weightInit(WeightInit.RELU)
-                        .activation(Activation.RELU)
+                        .activation(Activation.LEAKYRELU)
                         .build())
                 .layer(layer++, new LocalResponseNormalization.Builder()
                         .build())
@@ -54,7 +55,6 @@ public class ConvolutionalFive implements Network {
                 .layer(layer++, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                         .kernelSize(2, 2)
                         .build())
-
                 .layer(layer++, new ConvolutionLayer.Builder(3, 3)
                         .padding(1, 1)
                         .nOut(64)
@@ -66,8 +66,6 @@ public class ConvolutionalFive implements Network {
                 .layer(layer++, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                         .kernelSize(2, 2)
                         .build())
-
-
                 .layer(layer++, new ConvolutionLayer.Builder(3, 3)
                         .padding(0, 0)
                         .nOut(64)
@@ -80,22 +78,22 @@ public class ConvolutionalFive implements Network {
                         .weightInit(WeightInit.RELU)
                         .activation(Activation.LEAKYRELU)
                         .build())
-
-                .layer(layer++, new ConvolutionLayer.Builder(3, 3)
-                        .padding(0, 0)
-                        .nOut(64)
-                        .weightInit(WeightInit.RELU)
-                        .activation(Activation.LEAKYRELU)
-                        .build())
-
                 .layer(layer++, new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.MAX)
                         .kernelSize(2, 2)
                         .build())
                 .layer(layer++, new DenseLayer.Builder()
                         .activation(Activation.RELU)
-                        .name("dense")
+                        .name("dense1")
                         .weightInit(WeightInit.XAVIER)
-                        .nOut(384)
+                        .nOut(400)
+                        .dropOut(DROP_OUT)
+                        .build())
+                .layer(layer++, new DenseLayer.Builder()
+                        .activation(Activation.RELU)
+                        .name("dense2")
+                        .weightInit(WeightInit.XAVIER)
+                        .nIn(400)
+                        .nOut(400)
                         .dropOut(DROP_OUT)
                         .build())
                 .layer(layer++, new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)

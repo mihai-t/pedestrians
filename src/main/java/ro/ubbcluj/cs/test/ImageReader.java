@@ -17,17 +17,6 @@ import java.util.List;
 public class ImageReader {
 
 
-    static class Crop {
-        byte[] content;
-        int x, y;
-
-        public Crop(byte[] content, int x, int y) {
-            this.content = content;
-            this.x = x;
-            this.y = y;
-        }
-    }
-
     private static final Log log = LogFactory.getLog(ImageReader.class);
 
     public static List<Crop> crop(final File image, final int offsetX, final int offsetY) throws IOException {
@@ -57,6 +46,17 @@ public class ImageReader {
         }
 
         return images;
+    }
+
+    static class Crop {
+        byte[] content;
+        int x, y;
+
+        public Crop(byte[] content, int x, int y) {
+            this.content = content;
+            this.x = x;
+            this.y = y;
+        }
     }
 
 

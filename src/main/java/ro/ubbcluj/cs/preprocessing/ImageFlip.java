@@ -26,7 +26,7 @@ public class ImageFlip {
     private static void flipHorizontal(final File image) throws IOException {
         BufferedImage pgmImage = ImageIO.read(image);
         final String fileName = image.getName().replace(".pgm", "");
-      //  log.debug(String.format("Original image %s loaded.", fileName));
+        //  log.debug(String.format("Original image %s loaded.", fileName));
 
         final File outputFile = new File(System.getProperty("user.dir"), "../dataset/flipped/" + fileName + "_flipped.pgm");
 

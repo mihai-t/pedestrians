@@ -29,14 +29,11 @@ public class TrainingDataReader {
     private static final String[] ALLOWED_EXTENSIONS = NativeImageLoader.ALLOWED_FORMATS;
 
     private static final File TRAINING_PATH = new File(System.getProperty("user.dir"), "../dataset/Training");
-
-    private static DataNormalization dataNormalization;
-
     private static final int HEIGHT = 96;
     private static final int WIDTH = 48;
     private static final int CHANNELS = 1;
     private static final int CLASSES = 2;
-
+    private static DataNormalization dataNormalization;
 
     public static DataSetIterator getTrainingData(final int batchSize, final int seed, final double weight) throws IOException {
         final RecordReader recordReader = getImageRecordReader(seed, weight, 0);

@@ -7,6 +7,13 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 public class ImageTest {
+    public static ImageFrame show(final byte[] image) throws IOException {
+        final ImageFrame frame = new ImageFrame(image);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+        return frame;
+    }
+
     static class ImageFrame extends JFrame {
         ImageFrame(byte[] image) throws IOException {
             setTitle("Daimler");
@@ -39,13 +46,6 @@ public class ImageTest {
             this.repaint();
         }
 
-    }
-
-    public static ImageFrame show(final byte[] image) throws IOException {
-        final ImageFrame frame = new ImageFrame(image);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-        return frame;
     }
 
 
