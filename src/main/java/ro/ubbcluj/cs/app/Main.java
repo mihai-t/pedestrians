@@ -11,7 +11,7 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.ubbcluj.cs.io.TrainingDataReader;
-import ro.ubbcluj.cs.nn.ConvolutionalFour;
+import ro.ubbcluj.cs.nn.ConvolutionalOne;
 import ro.ubbcluj.cs.nn.Network;
 
 import java.io.File;
@@ -29,10 +29,10 @@ public class Main {
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
-    private static final int BATCH_SIZE = 100;
+    private static final int BATCH_SIZE = 75;
     private static final int EPOCHS = 100;
 
-    private static final Network network = new ConvolutionalFour();
+    private static final Network network = new ConvolutionalOne();
     private static final int INITIAL_EPOCH = 1;
 
     public static void main(String[] args) throws Exception {

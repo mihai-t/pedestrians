@@ -22,7 +22,7 @@ public class ConvolutionalOne implements Network {
         final MultiLayerConfiguration.Builder builder = new NeuralNetConfiguration.Builder()
                 .seed(SEED)
                 .iterations(1)
-                .regularization(true).l1(0.0001).l2(0.0001)//elastic net regularization
+                .regularization(true).l1(0.0001).l2(0.0001)
                 .learningRate(LEARNING_RATE)
                 .learningRateDecayPolicy(LearningRatePolicy.Score).lrPolicyDecayRate(0.001)
                 .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -85,7 +85,6 @@ public class ConvolutionalOne implements Network {
                 .backprop(true)
                 .pretrain(false)
                 .setInputType(InputType.convolutional(96, 48, 1));
-        // .cnnInputSize(96, 48, 1);
         final MultiLayerConfiguration build = builder.build();
         final MultiLayerNetwork net = new MultiLayerNetwork(build);
         net.init();

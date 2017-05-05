@@ -19,7 +19,7 @@ public class ImageReader {
 
     private static final Log log = LogFactory.getLog(ImageReader.class);
 
-    public static List<Crop> crop(final File image, final int offsetX, final int offsetY) throws IOException {
+    public static List<Crop> crop(final File image, final int strideX, final int strideY) throws IOException {
 
         final BufferedImage originalImage = ImageIO.read(image);
 
@@ -29,8 +29,8 @@ public class ImageReader {
 
         log.debug(String.format("Original image %s loaded. Dimension: %d x %d", fileName, width, height));
         final List<Crop> images = new ArrayList<>();
-        for (int w = offsetX; w < width; w += 48) {
-            for (int h = offsetY; h < height; h += 96) {
+        for (int w = 0; w < width; w += strideX) {
+            for (int h = 0; h < height; h += strideY) {
                 if (w + 48 > width || h + 96 > height) {
                     continue;
                 }
@@ -56,6 +56,14 @@ public class ImageReader {
             this.content = content;
             this.x = x;
             this.y = y;
+        }
+
+        @Override
+        public String toString() {
+            return "Crop{" +
+                    "x=" + x +
+                    ", y=" + y +
+                    '}';
         }
     }
 

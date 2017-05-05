@@ -32,7 +32,7 @@ public class DataSetReader {
     private static DataNormalization dataNormalization;
 
     private static DataNormalization normalize(final DataSetIterator iterator) {
-        final DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+        final DataNormalization scaler = new ImagePreProcessingScaler(-1, 1);
         scaler.fit(iterator);
         iterator.setPreProcessor(scaler);
         return scaler;

@@ -24,8 +24,8 @@ public interface Network {
                 .setMaximumHostCacheableLength(1024 * 1024 * 1024L)
                 .setMaximumGridSize(512)
                 .setMaximumDeviceCacheableLength(1024 * 1024 * 1024L)
-                .setMaximumDeviceCache(8L * 1024 * 1024 * 1024L)
-                .setMaximumHostCache(8L * 1024 * 1024 * 1024L)
+                .setMaximumDeviceCache(4L * 1024 * 1024 * 1024L)
+                .setMaximumHostCache(4L * 1024 * 1024 * 1024L)
                 .setMaximumBlockSize(512);
 
         return new ParallelWrapper.Builder(model)
